@@ -50,7 +50,7 @@ namespace Library.API.Controllers
 
             var authorEntity = Mapper.Map<Author>(author);
             _libraryRepository.AddAuthor(authorEntity);
-            /*
+           
             if (!_libraryRepository.Save())
             {
                 //return StatusCode(500, "A problem happed with handling your request.");
@@ -58,7 +58,7 @@ namespace Library.API.Controllers
                 //Another option use global area
                 throw new Exception("Creating an author fialed on save");
             }
-            */
+           
             var authorToReturn = Mapper.Map<AuthorDto>(authorEntity);
 
             return CreatedAtRoute("GetAuthor", new { id = authorToReturn.Id }, authorToReturn);
@@ -120,11 +120,13 @@ namespace Library.API.Controllers
 
     returned:
 {
-  "id": "69c79c07-36bd-4616-b634-b901cce43865",
-  "name": "Thriller Ellroy",
+  "id": "740a0810-88fe-4146-818c-b11db67b6c8a",
+  "name": "James Ellroy",
   "age": 69,
-  "genre": null
+  "genre": "Thriller"
 }
+
+
 http://localhost:6058/api/authors/25320c5e-f58a-4b1f-b63a-8ee07a840bdf
 
  
