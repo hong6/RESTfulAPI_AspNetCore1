@@ -58,7 +58,16 @@ namespace Library.API
             }
             else
             {
-                app.UseExceptionHandler();
+                //app.UseExceptionHandler();
+                //Global error handling
+                app.UseExceptionHandler(appBuilder => 
+                {
+                    appBuilder.Run(async context =>
+                    {
+                        context.Response.StatusCode = 500;
+                        await context.Response.WriteAsync("An unexpected fault, try later.");
+                    });
+                });
             }
 
             AutoMapper.Mapper.Initialize(cfg => 
@@ -66,6 +75,8 @@ namespace Library.API
                 cfg.CreateMap<Entities.Author, Models.AuthorDto>()
                     .ForMember(dest => dest.Name, opt => opt.MapFrom(src => $"{src.FirstName} {src.LastName}"))
                     .ForMember(dest => dest.Age, opt => opt.MapFrom(src => src.DateOfBirth.GetCurrentAge()));
+
+                cfg.CreateMap<Entities.Book, Models.BookDto>();
             });
 
             libraryContext.EnsureSeedDataForContext();
