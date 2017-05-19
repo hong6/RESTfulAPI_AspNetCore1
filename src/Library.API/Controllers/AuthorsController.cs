@@ -4,6 +4,7 @@ using Library.API.Models;
 using System.Collections.Generic;
 using AutoMapper;
 using System;
+using Library.API.Entities;
 
 namespace Library.API.Controllers
 {
@@ -26,7 +27,7 @@ namespace Library.API.Controllers
             return Ok(authors);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id}", Name = "GetAuthor")]
         public IActionResult GetAuthor(Guid id)
         {           
             var authorFromRepo = _libraryRepository.GetAuthor(id);
@@ -37,6 +38,30 @@ namespace Library.API.Controllers
             var author = Mapper.Map<AuthorDto>(authorFromRepo);
 
             return Ok(author);
+        }
+
+        [HttpPost]
+        public IActionResult CreateAuthor([FromBody] AuthorForCreationDto author)
+        {
+            if(author == null)
+            {
+                return BadRequest();
+            }
+
+            var authorEntity = Mapper.Map<Author>(author);
+            _libraryRepository.AddAuthor(authorEntity);
+            /*
+            if (!_libraryRepository.Save())
+            {
+                //return StatusCode(500, "A problem happed with handling your request.");
+
+                //Another option use global area
+                throw new Exception("Creating an author fialed on save");
+            }
+            */
+            var authorToReturn = Mapper.Map<AuthorDto>(authorEntity);
+
+            return CreatedAtRoute("GetAuthor", new { id = authorToReturn.Id }, authorToReturn);
         }
     }
 }
@@ -83,5 +108,24 @@ namespace Library.API.Controllers
 ]
 
     http://localhost:6058/api/authors/76053df4-6687-4353-8937-b45556748abe
+
+    post
+    http://localhost:6058/api/authors
+    {
+	"firstName" : "James", 
+	"lastName" : "Ellroy", 
+	"dateOfBirth" : "1948-03-04T00:00:00", 
+	"firstname" : "Thriller" 
+    }
+
+    returned:
+{
+  "id": "69c79c07-36bd-4616-b634-b901cce43865",
+  "name": "Thriller Ellroy",
+  "age": 69,
+  "genre": null
+}
+http://localhost:6058/api/authors/25320c5e-f58a-4b1f-b63a-8ee07a840bdf
+
  
  */

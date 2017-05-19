@@ -14,7 +14,8 @@
     "Microsoft.Extensions.Configuration.FileExtensions": "1.0.0",
     "Microsoft.Extensions.Configuration.Json": "1.0.0",
     "Microsoft.EntityFrameworkCore.SqlServer": "1.0.1",
-    "AutoMapper": "6.0.2"
+    "AutoMapper": "6.0.2",
+    "Microsoft.AspNetCore.Mvc.Formatters.Xml": "1.0.1"
   },
 
   "tools": {
