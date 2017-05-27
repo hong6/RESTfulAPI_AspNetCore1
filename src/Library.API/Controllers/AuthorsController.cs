@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using AutoMapper;
 using System;
 using Library.API.Entities;
+using Microsoft.AspNetCore.Http;
 
 namespace Library.API.Controllers
 {
@@ -63,10 +64,62 @@ namespace Library.API.Controllers
 
             return CreatedAtRoute("GetAuthor", new { id = authorToReturn.Id }, authorToReturn);
         }
+
+        [HttpPost("{id}")]
+        public IActionResult BlockAuthorCreation(Guid id)
+        {
+            if (_libraryRepository.AuthorExists(id))
+            {
+                return new StatusCodeResult(StatusCodes.Status409Conflict);
+            }
+
+            return NotFound();
+        }
+
+        [HttpDelete("{id}")]
+        public IActionResult DeleteAuthor(Guid id)
+        {
+            var authorFromRepo = _libraryRepository.GetAuthor(id);
+            if(authorFromRepo == null)
+            {
+                return NotFound();
+            }
+
+            _libraryRepository.DeleteAuthor(authorFromRepo);
+            if (!_libraryRepository.Save())
+            {
+                throw new Exception($"Deleting author {id} failed on save.");
+            }
+
+            return NoContent();
+        }
     }
 }
 
 /*
+ * ex DELETE 
+ * http://localhost:6058/api/authors/25320c5e-f58a-4b1f-b63a-8ee07a840bdf
+
+ ex POST
+ http://localhost:6058/api/authors
+ {
+	"FirstName" : "James", 
+	"LastName" : "Ellroy", 
+	"DateOfBirth" : "1948-03-04T00:00:00", 
+	"Genre" : "Thriller",
+    "Books": [
+        {
+            "Title": American Tabloid",
+            "Description": "First book in the Uderworld USA trilogy" 
+        },
+        {
+            "Title":"The Cold Six Thousand",
+            "Description":"Second book in the Uderworld USA trilogy"
+        }
+        ]
+    }
+ 
+ex
  http://localhost:6058/api/authors
  [
   {

@@ -38,8 +38,13 @@ namespace Library.API
             services.AddMvc(setupAction => 
             {
                 setupAction.ReturnHttpNotAcceptable = true; //xml won't supported
+                
                 //want to support xml but not default
                 setupAction.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
+
+                //content-type: application/xml - Request body
+                //Accept: application/xml
+                setupAction.InputFormatters.Add(new XmlDataContractSerializerInputFormatter());
             });
 
             // register the DbContext on the container, getting the connection string from
@@ -85,6 +90,9 @@ namespace Library.API
                 cfg.CreateMap<Entities.Book, Models.BookDto>();
 
                 cfg.CreateMap<Models.AuthorForCreationDto, Entities.Author>();
+
+                cfg.CreateMap<Models.BookForCreationDto, Entities.Book>();
+
             });
 
             libraryContext.EnsureSeedDataForContext();
