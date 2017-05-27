@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using Library.API.Entities;
 using Library.API.Helpers;
@@ -19,30 +18,7 @@ namespace Library.API.Controllers
         {
             _libraryRepository = libraryRepository;
         }
-
-        //public IActionResult CreateAuthorCollection(
-        //    [FromBody] IEnumerable<AuthorForCreationDto> authorCollection)
-        //{
-        //    if (authorCollection == null)
-        //    {
-        //        return BadRequest();
-        //    }
-
-        //    var authorEntities = Mapper.Map<IEnumerable<Author>>(authorCollection);
-
-        //    foreach (var author in authorEntities)
-        //    {
-        //        _libraryRepository.AddAuthor(author);
-        //    }
-
-        //    if (!_libraryRepository.Save())
-        //    {
-        //        throw new Exception("Creating an author collection failed on save");
-        //    }
-
-        //    return Ok();
-        //}
-       
+                       
         [HttpPost]
         public IActionResult CreateAuthorCollection([FromBody] IEnumerable<AuthorForCreationDto> authorCollection)
         {
@@ -68,8 +44,6 @@ namespace Library.API.Controllers
             return CreatedAtRoute("GetAuthorCollection",
                 new { ids = idsAsString }, 
                 authorCollectionToReturn);
-                
-            //return Ok();
         }
 
         [HttpGet("{ids}", Name = "GetAuthorCollection")]
@@ -94,7 +68,7 @@ namespace Library.API.Controllers
 }
 
 /*
-ex
+ex POST
 http://localhost:6058/api/authorcollections
 [{
 	"FirstName" : "James", 

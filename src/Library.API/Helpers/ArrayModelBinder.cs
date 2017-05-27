@@ -12,7 +12,7 @@ namespace Library.API.Helpers
     {        
         public Task BindModelAsync(ModelBindingContext bindingContext)
         {
-            //Our binder works only on enumerable types
+            //binder works only on enumerable types
             if (!bindingContext.ModelMetadata.IsEnumerableType)
             {
                 bindingContext.Result = ModelBindingResult.Failed();
