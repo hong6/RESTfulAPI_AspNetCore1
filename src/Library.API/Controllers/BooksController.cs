@@ -5,12 +5,13 @@ using System.Collections.Generic;
 using AutoMapper;
 using System;
 using Library.API.Entities;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace Library.API.Controllers
 {
     [Route("api/authors/{authorId}/books")]
-    public class BooksController: Controller
-    {       
+    public class BooksController : Controller
+    {
         private ILibraryRepository _libraryRepository;
 
         public BooksController(ILibraryRepository libraryRepository)
@@ -32,16 +33,16 @@ namespace Library.API.Controllers
             return Ok(booksForAuthor);
         }
 
-        [HttpGet("{id}", Name ="GetBookForAuthor")]
+        [HttpGet("{id}", Name = "GetBookForAuthor")]
         public IActionResult GetBookForAuthor(Guid authorId, Guid Id)
         {
             if (!_libraryRepository.AuthorExists(authorId))
-            { 
+            {
                 return NotFound();
             }
 
             var bookForAuthorFromRepo = _libraryRepository.GetBookForAuthor(authorId, Id);
-            if(bookForAuthorFromRepo == null)
+            if (bookForAuthorFromRepo == null)
             {
                 return NotFound();
             }
@@ -54,12 +55,12 @@ namespace Library.API.Controllers
         [HttpPost]
         public IActionResult CreateBookForAuthor(Guid authorId, [FromBody] BookForCreationDto book)
         {
-            if(book==null)
+            if (book == null)
             {
                 return BadRequest();
             }
 
-            if(!_libraryRepository.AuthorExists(authorId))
+            if (!_libraryRepository.AuthorExists(authorId))
             {
                 return NotFound();
             }
@@ -67,14 +68,14 @@ namespace Library.API.Controllers
             var bookEntity = Mapper.Map<Book>(book);
             _libraryRepository.AddBookForAuthor(authorId, bookEntity);
 
-            if(!_libraryRepository.Save())
+            if (!_libraryRepository.Save())
             {
                 throw new Exception($"Creating a book for author {authorId} failed on save");
             }
             var bookToReturn = Mapper.Map<BookDto>(bookEntity);
 
-            return CreatedAtRoute("GetBookForAuthor", 
-                new {authorId=authorId, id=bookToReturn.Id }, bookToReturn);
+            return CreatedAtRoute("GetBookForAuthor",
+                new { authorId = authorId, id = bookToReturn.Id }, bookToReturn);
         }
 
         [HttpDelete("{id}")]
@@ -86,7 +87,7 @@ namespace Library.API.Controllers
             }
 
             var bookForAuthorFromRepo = _libraryRepository.GetBookForAuthor(authorId, id);
-            if(bookForAuthorFromRepo == null)
+            if (bookForAuthorFromRepo == null)
             {
                 return NotFound();
             }
@@ -100,10 +101,132 @@ namespace Library.API.Controllers
 
             return NoContent();
         }
+
+        [HttpPut("{id}")]
+        public IActionResult UpdateBookForAuthor(Guid authorId, Guid id,
+            [FromBody] BookForUpdateDto book)
+        {
+            if (book == null)
+            {
+                return BadRequest();
+            }
+            if (!_libraryRepository.AuthorExists(authorId))
+            {
+                return NotFound();
+            }
+            var bookForAuthorFromRepo = _libraryRepository.GetBookForAuthor(authorId, id);
+            if (bookForAuthorFromRepo == null)
+            {
+                //return NotFound();
+                var bookToAdd = Mapper.Map<Book>(book);
+                bookToAdd.Id = id;
+
+                _libraryRepository.AddBookForAuthor(authorId, bookToAdd);
+                if (!_libraryRepository.Save())
+                {
+                    throw new Exception($"Upserting book {id} for author {authorId} failed on save.");
+                }
+
+                var bookToReturn = Mapper.Map<BookDto>(bookToAdd);
+
+                return CreatedAtRoute("GetBookForAuthor", new { authorId = authorId, id=bookToReturn.Id }, bookToReturn);
+            }
+
+            Mapper.Map(book, bookForAuthorFromRepo);
+            _libraryRepository.UpdateBookForAuthor(bookForAuthorFromRepo);
+
+            if (!_libraryRepository.Save())
+            {
+                throw new Exception($"Updating book {id} for author {authorId} failed on PUT.");            
+            }
+
+            return NoContent();
+        }
+
+        [HttpPatch("{id}")]
+        public IActionResult PartiallyUpdateBookForAuthor(Guid authorId, Guid id,
+            [FromBody] JsonPatchDocument<BookForUpdateDto> patchDoc)
+        {
+            if (patchDoc == null)
+            {
+                return BadRequest();
+            }
+            if (!_libraryRepository.AuthorExists(authorId))
+            {
+                return NotFound();
+            }
+
+            var bookForAuthorFromRepo = _libraryRepository.GetBookForAuthor(authorId, id);
+            if (bookForAuthorFromRepo == null)
+            {
+                //return NotFound();
+
+                var bookDto = new BookForUpdateDto();
+                patchDoc.ApplyTo(bookDto);
+
+                var bookToAdd = Mapper.Map<Book>(bookDto);
+                bookToAdd.Id = id;
+
+                _libraryRepository.AddBookForAuthor(authorId, bookToAdd);
+                if (!_libraryRepository.Save())
+                {
+                    throw new Exception($"Upserting book {id} for author {authorId} failed on save PATCH.");
+                }
+
+                var bookToReturn = Mapper.Map<BookDto>(bookToAdd);
+
+                return CreatedAtRoute("GetBookForAuthor", new { authorId = authorId, id = bookToReturn.Id }, bookToReturn);
+            }
+
+            var bookToPatch = Mapper.Map<BookForUpdateDto>(bookForAuthorFromRepo);
+            patchDoc.ApplyTo(bookToPatch);
+
+            //add validation
+
+            Mapper.Map(bookToPatch, bookForAuthorFromRepo);
+            _libraryRepository.UpdateBookForAuthor(bookForAuthorFromRepo);
+            if (!_libraryRepository.Save())
+            {
+                throw new Exception($"Patching book {id} for author {authorId} failed on save.");
+            }
+
+            return NoContent();
+        }
     }
 }
 
+
 /*
+ EX PATCH Upserting
+http://localhost:6058/api/authors/76053df4-6687-4353-8937-b45556748abe/books/448eb762-95e9-4c31-95e1-b20053fbe215
+ [
+{
+  "op": "replace",
+  "path": "/title",
+  "value": "A Game of Thrones - PATCH Upserting test"
+},
+{
+  "op": "replace",
+  "path": "/description",
+  "value": "Description - A Game of Thrones - PATCH Upserting test"
+}
+]
+ EX PATCH
+http://localhost:6058/api/authors/76053df4-6687-4353-8937-b45556748abe/books/447eb762-95e9-4c31-95e1-b20053fbe215
+[{
+  "op": "replace",
+  "path": "/title",
+  "value": "A Game of Thrones - PATCH test"
+}]
+
+ ex, PUT
+ http://localhost:6058/api/authors/76053df4-6687-4353-8937-b45556748abe/books/447eb762-95e9-4c31-95e1-b20053fbe215
+ {
+  "title": "A Game of Thrones - updated",
+  "description": "updated - "
+}
+
+
  EX, DELETE
 http://localhost:6058/api/authors/25320c5e-f58a-4b1f-b63a-8ee07a840bdf/books/70a1f9b9-0a37-4c1a-99b1-c7709fc64167
 
