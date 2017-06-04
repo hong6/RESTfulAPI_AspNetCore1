@@ -42,25 +42,19 @@ namespace Library.API
         {
             services.AddMvc(setupAction => 
             {
-                setupAction.ReturnHttpNotAcceptable = true; //xml won't supported
-                
+                setupAction.ReturnHttpNotAcceptable = true; //xml won't supported                
                 //want to support xml but not default
                 setupAction.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
-
                 //content-type: application/xml - Request body
                 //Accept: application/xml
                 setupAction.InputFormatters.Add(new XmlDataContractSerializerInputFormatter());
             });
-
-            // register the DbContext on the container, getting the connection string from
-            // appSettings (note: use this during development; in a production environment,
+            // register the DbContext on the container, getting the connection string from appSettings (note: use this during development; in a production environment,
             // it's better to store the connection string in an environment variable)
             var connectionString = Configuration["connectionStrings:libraryDBConnectionString"];
             services.AddDbContext<LibraryContext>(o => o.UseSqlServer(connectionString));
-
             // register the repository
             services.AddScoped<ILibraryRepository, LibraryRepository>();
-
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
             services.AddScoped<IUrlHelper, UrlHelper>(implementationFactory =>
             {
@@ -68,6 +62,7 @@ namespace Library.API
                 implementationFactory.GetService<IActionContextAccessor>().ActionContext;
                 return new UrlHelper(actionContext);
             });
+            services.AddTransient<IPropertyMappingService, PropertyMappingService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

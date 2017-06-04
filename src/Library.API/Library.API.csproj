@@ -25,6 +25,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Formatters.Xml" Version="1.0.3" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="1.1.2" />
     <PackageReference Include="NLog.Extensions.Logging" Version="1.0.0-rtm-alpha5" />
+    <PackageReference Include="System.Linq.Dynamic.Core" Version="1.0.7.3" />
   </ItemGroup>
 
   <ItemGroup>
